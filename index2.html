@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prediksi pH Yogurt</title>
+<style>
+  body{
+    font-family: Arial, sans-serif;
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 0 20px;
+    color: #222;
+  }
+  h1{
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+  p{
+    color: #666;
+    font-size: 14px;
+    margin-top: 0;
+  }
+  label{
+    display: block;
+    margin-top: 16px;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  input{
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  button{
+    margin-top: 20px;
+    width: 100%;
+    padding: 10px;
+    font-size: 15px;
+    background: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  button:hover{
+    background: #555;
+  }
+  #result{
+    margin-top: 24px;
+    padding: 16px;
+    border-radius: 6px;
+    background: #f4f4f4;
+    display: none;
+  }
+  #result.show{
+    display: block;
+  }
+  #result h2{
+    margin: 0 0 4px;
+    font-size: 28px;
+  }
+  #result p{
+    margin: 0;
+    font-size: 14px;
+    text-transform: capitalize;
+  }
+  #error{
+    color: #c0392b;
+    font-size: 13px;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Prediksi pH Yogurt</h1>
+<p>Masukkan suhu dan waktu fermentasi.</p>
+
+<form id="form">
+  <label for="suhu">Suhu (°C, 20–55)</label>
+  <input type="number" id="suhu" min="20" max="55" value="40" required>
+
+  <label for="waktu">Waktu (jam, 0–24)</label>
+  <input type="number" id="waktu" min="0" max="24" value="6" step="0.5" required>
+
+  <button type="submit">Prediksi</button>
+  <div id="error"></div>
+</form>
+
+<div id="result">
+  <h2 id="phVal"></h2>
+  <p id="statusVal"></p>
+</div>
+
+<script>
+  const form = document.getElementById('form');
+  const result = document.getElementById('result');
+  const errorEl = document.getElementById('error');
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    errorEl.textContent = '';
+    result.classList.remove('show');
+
+    const suhu = parseFloat(document.getElementById('suhu').value);
+    const waktu = parseFloat(document.getElementById('waktu').value);
+
+    try {
+      const res = await fetch('/predict-ph', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ suhu: suhu, waktu: waktu })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        errorEl.textContent = data.error || 'Terjadi kesalahan.';
+        return;
+      }
+
+      document.getElementById('phVal').textContent = 'pH ' + data.ph;
+      document.getElementById('statusVal').textContent = data.status;
+      result.classList.add('show');
+    } catch (err) {
+      errorEl.textContent = 'Tidak dapat terhubung ke server.';
+    }
+  });
+</script>
+
+</body>
+</html>
